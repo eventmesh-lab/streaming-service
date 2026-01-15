@@ -1,10 +1,110 @@
 version: '3.8'
+
 services:
-  api:
+  # MongoDB - Base de datos para sesiones, accesos y auditoría
+  mongodb:
+    image: mongo:7.0
+    container_name: streaming-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: streaming_pass_2024
+      MONGO_INITDB_DATABASE: streaming_db
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - streaming-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ - Message broker para eventos inter-microservicios
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: streaming-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: streaming_user
+      RABBITMQ_DEFAULT_PASS: streaming_pass_2024
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - streaming-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Streaming Service API - Microservicio principal
+  streaming-api:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: streaming-api
+    restart: unless-stopped
     ports:
-      - "5000:80"
+      - "7001:8080"   # HTTP
+      - "7002:8081"   # HTTPS (si se configura)
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      # ASP.NET Core
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      
+      # MongoDB Configuration
+      MongoDb__ConnectionString: mongodb://admin:streaming_pass_2024@mongodb:27017
+      MongoDb__DatabaseName: streaming_db
+      
+      # RabbitMQ Configuration
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__Port: 5672
+      RabbitMQ__UserName: streaming_user
+      RabbitMQ__Password: streaming_pass_2024
+      RabbitMQ__VirtualHost: /
+      
+      # JWT Configuration (debe coincidir con Keycloak)
+      Jwt__Secret: super_secret_key_1234567890_min_length_32_chars_required
+      Jwt__Issuer: https://keycloak.eventmesh.com
+      Jwt__Audience: streaming-service
+      Jwt__ExpirationMinutes: 60
+      
+      # SignalR Configuration
+      SignalR__EnableDetailedErrors: true
+      
+      # CORS Origins (separados por coma)
+      CORS__AllowedOrigins: http://localhost:5173,http://localhost:3000,https://frontend.eventmesh.com
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - streaming-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  streaming-network:
+    driver: bridge
+    name: streaming-network
+
+volumes:
+  mongodb_data:
+    name: streaming-mongodb-data
+  mongodb_config:
+    name: streaming-mongodb-config
+  rabbitmq_data:
+    name: streaming-rabbitmq-data
