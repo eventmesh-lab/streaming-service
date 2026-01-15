@@ -4,13 +4,13 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>streaming_service.Api</AssemblyName>
+    <AssemblyName>streaming-service.Api</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\streaming_service.Application\streaming_service.Application.csproj" />
-    <ProjectReference Include="..\streaming_service.Domain\streaming_service.Domain.csproj" />
-    <ProjectReference Include="..\streaming_service.Infrastructure\streaming_service.Infrastructure.csproj" />
+    <ProjectReference Include="..\streaming-service.Application\streaming-service.Application.csproj" />
+    <ProjectReference Include="..\streaming-service.Domain\streaming-service.Domain.csproj" />
+    <ProjectReference Include="..\streaming-service.Infrastructure\streaming-service.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

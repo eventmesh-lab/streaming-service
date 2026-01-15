@@ -15,8 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\streaming_service.Application\streaming_service.Application.csproj" />
-    <ProjectReference Include="..\..\src\streaming_service.Domain\streaming_service.Domain.csproj" />
+    <ProjectReference Include="..\..\src\streaming-service.Application\streaming-service.Application.csproj" />
+    <ProjectReference Include="..\..\src\streaming-service.Domain\streaming-service.Domain.csproj" />
   </ItemGroup>
 
 </Project>
