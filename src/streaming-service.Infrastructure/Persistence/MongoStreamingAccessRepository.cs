@@ -36,6 +36,11 @@ namespace streaming_service.Infrastructure.Persistence
             return await _collection.Find(a => a.UserId == userId && a.SessionId == sessionId).FirstOrDefaultAsync(cancellationToken);
         }
 
+        public async Task<StreamingAccess?> GetByUserAndSessionAsync(Guid userId, Guid sessionId, CancellationToken cancellationToken = default)
+        {
+            return await _collection.Find(a => a.UserId == userId && a.SessionId == sessionId).FirstOrDefaultAsync(cancellationToken);
+        }
+
         public async Task<int> GetAccessCountBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken = default)
         {
             // Simplified logic: Count documents where SessionId matches. 

@@ -29,6 +29,25 @@ namespace streaming_service.Api.Hubs
             await Clients.Caller.SendAsync("AccessGranted", "Welcome to the stream!");
         }
 
+        public async Task LeaveSession(string sessionId)
+        {
+            _sessionViewers.AddOrUpdate(sessionId, 0, (key, val) => Math.Max(0, val - 1));
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, sessionId);
+            await Clients.Group(sessionId).SendAsync("ViewerCountUpdated", _sessionViewers[sessionId]);
+        }
+
+        public async Task SendChatMessage(string sessionId, string message)
+        {
+            var username = Context.User?.Identity?.Name ?? "Anonymous";
+            
+            await Clients.Group(sessionId).SendAsync("ReceiveChatMessage", new
+            {
+                username,
+                text = message,
+                timestamp = DateTime.UtcNow
+            });
+        }
+
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             foreach (var sessionId in _sessionViewers.Keys)

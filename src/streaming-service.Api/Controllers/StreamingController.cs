@@ -40,6 +40,33 @@ namespace streaming_service.Api.Controllers
             return Ok(token);
         }
 
+        [HttpGet("session/{eventId}/access")]
+        public async Task<IActionResult> GetStreamAccess(Guid eventId, CancellationToken ct)
+        {
+            // Extract user ID from JWT claims (set by API Gateway/Keycloak)
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("userId");
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized(new { message = "Invalid or missing user ID in token" });
+
+            // Get access token from Authorization header
+            var authHeader = Request.Headers["Authorization"].ToString();
+            var accessToken = authHeader.Replace("Bearer ", "");
+
+            var query = new GetStreamAccessQuery(eventId, userId, accessToken);
+            var result = await _mediator.Send(query, ct);
+
+            if (!result.IsSuccess)
+                return BadRequest(new { message = result.ErrorMessage });
+
+            return Ok(new
+            {
+                streamUrl = result.StreamUrl,
+                sessionId = result.SessionId,
+                expiresAt = result.ExpiresAt,
+                quality = "1080p" // Simulated
+            });
+        }
+
         [HttpGet("validate")]
         public async Task<IActionResult> ValidateAccess([FromQuery] string token, CancellationToken ct)
         {
