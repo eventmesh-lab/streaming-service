@@ -15,7 +15,7 @@ namespace streaming_service.Api.Services
             _hubContext = hubContext;
         }
 
-        public async Task NotifyUserAsync(string userId, string message, object data, CancellationToken cancellationToken = default)
+        public async Task NotifyUserAsync(string userId, string message, object? data, CancellationToken cancellationToken)
         {
             // In a real app, map UserId -> ConnectionId. 
             // For now, assume using UserId as the group or identifier if configured.
@@ -23,7 +23,7 @@ namespace streaming_service.Api.Services
             await _hubContext.Clients.User(userId).SendAsync("Notification", new { Message = message, Data = data }, cancellationToken);
         }
 
-        public async Task BroadcastAsync(string eventName, object data, CancellationToken cancellationToken = default)
+        public async Task BroadcastAsync(string eventName, object? data, CancellationToken cancellationToken)
         {
             await _hubContext.Clients.All.SendAsync(eventName, data, cancellationToken);
         }

@@ -27,7 +27,7 @@ namespace streaming_service.Application.Handlers
         public async Task<AccessToken> Handle(GenerateAccessTokenCommand request, CancellationToken cancellationToken)
         {
             // Generate the token using the infrastructure service via port
-            var token = _tokenGenerator.GenerateToken(request.UserId, request.SessionId, request.ReservationId);
+            var token = _tokenGenerator.GenerateToken(request.UserId, request.SessionId, request.ReservationId, null);
 
             var access = new StreamingAccess(request.SessionId, request.UserId, request.ReservationId, token);
             

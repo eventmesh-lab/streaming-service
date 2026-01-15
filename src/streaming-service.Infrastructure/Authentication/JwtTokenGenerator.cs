@@ -19,7 +19,7 @@ namespace streaming_service.Infrastructure.Authentication
             _configuration = configuration;
         }
 
-        public AccessToken GenerateToken(Guid userId, Guid sessionId, Guid reservationId, Dictionary<string, object>? claims = null)
+        public AccessToken GenerateToken(Guid userId, Guid sessionId, Guid reservationId, Dictionary<string, object>? claims)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"] ?? "super_secret_key_1234567890_min_length"));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -64,7 +64,7 @@ namespace streaming_service.Infrastructure.Authentication
         public AccessToken RefreshToken(AccessToken expiredToken)
         {
             // Simplified: Just generate a new one with same details
-            return GenerateToken(expiredToken.UserId, expiredToken.SessionId, Guid.Empty); 
+            return GenerateToken(expiredToken.UserId, expiredToken.SessionId, Guid.Empty, null); 
         }
     }
 }

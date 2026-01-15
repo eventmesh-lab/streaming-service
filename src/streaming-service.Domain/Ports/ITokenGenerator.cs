@@ -6,7 +6,7 @@ namespace streaming_service.Domain.Ports
 {
     public interface ITokenGenerator
     {
-        AccessToken GenerateToken(Guid userId, Guid sessionId, Guid reservationId, Dictionary<string, object>? claims = null);
+        AccessToken GenerateToken(Guid userId, Guid sessionId, Guid reservationId, Dictionary<string, object>? claims);
         AccessToken RefreshToken(AccessToken expiredToken);
     }
 }
