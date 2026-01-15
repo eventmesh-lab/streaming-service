@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # MongoDB - Base de datos para sesiones, accesos y auditoría
   mongodb:
@@ -18,10 +16,11 @@ services:
     networks:
       - streaming-network
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   # RabbitMQ - Message broker para eventos inter-microservicios
   rabbitmq:
@@ -29,8 +28,8 @@ services:
     container_name: streaming-rabbitmq
     restart: unless-stopped
     ports:
-      - "5672:5672"   # AMQP port
-      - "15672:15672" # Management UI
+      - "5673:5672" # AMQP port (changed to avoid conflict)
+      - "15673:15672" # Management UI (changed to avoid conflict)
     environment:
       RABBITMQ_DEFAULT_USER: streaming_user
       RABBITMQ_DEFAULT_PASS: streaming_pass_2024
@@ -40,10 +39,11 @@ services:
     networks:
       - streaming-network
     healthcheck:
-      test: rabbitmq-diagnostics -q ping
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   # Streaming Service API - Microservicio principal
   streaming-api:
@@ -53,33 +53,33 @@ services:
     container_name: streaming-api
     restart: unless-stopped
     ports:
-      - "7001:8080"   # HTTP
-      - "7002:8081"   # HTTPS (si se configura)
+      - "7001:8080" # HTTP
+      - "7002:8081" # HTTPS (si se configura)
     environment:
       # ASP.NET Core
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      
+
       # MongoDB Configuration
       MongoDb__ConnectionString: mongodb://admin:streaming_pass_2024@mongodb:27017
       MongoDb__DatabaseName: streaming_db
-      
+
       # RabbitMQ Configuration
       RabbitMQ__HostName: rabbitmq
       RabbitMQ__Port: 5672
       RabbitMQ__UserName: streaming_user
       RabbitMQ__Password: streaming_pass_2024
       RabbitMQ__VirtualHost: /
-      
+
       # JWT Configuration (debe coincidir con Keycloak)
       Jwt__Secret: super_secret_key_1234567890_min_length_32_chars_required
       Jwt__Issuer: https://keycloak.eventmesh.com
       Jwt__Audience: streaming-service
       Jwt__ExpirationMinutes: 60
-      
+
       # SignalR Configuration
       SignalR__EnableDetailedErrors: true
-      
+
       # CORS Origins (separados por coma)
       CORS__AllowedOrigins: http://localhost:5173,http://localhost:3000,https://frontend.eventmesh.com
     depends_on:
@@ -90,7 +90,7 @@ services:
     networks:
       - streaming-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -1,18 +1,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy solution and project files
-COPY streaming-service.sln ./
-COPY src/streaming-service.Domain/*.csproj ./src/streaming-service.Domain/
-COPY src/streaming-service.Application/*.csproj ./src/streaming-service.Application/
-COPY src/streaming-service.Infrastructure/*.csproj ./src/streaming-service.Infrastructure/
-COPY src/streaming-service.Api/*.csproj ./src/streaming-service.Api/
+# Copy everything (simpler approach for Docker build)
+COPY . .
 
 # Restore dependencies
-RUN dotnet restore
+WORKDIR /src
+RUN dotnet restore streaming-service.sln
 
-# Copy everything else and build
-COPY . ./
+# Build and publish
 WORKDIR /src/src/streaming-service.Api
 RUN dotnet publish -c Release -o /app/publish --no-restore
 
