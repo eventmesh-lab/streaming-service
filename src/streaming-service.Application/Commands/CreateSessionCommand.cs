@@ -1,7 +1,7 @@
 using System;
+using MediatR;
 
 namespace streaming_service.Application.Commands
 {
-    // Note: Depends on MediatR
-    public record CreateSessionCommand(Guid EventId, DateTime ScheduledStartTime);
+    public record CreateSessionCommand(Guid EventId, DateTime ScheduledStartTime, int MaxViewers) : IRequest<Guid>;
 }
