@@ -98,6 +98,8 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -114,5 +116,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<StreamingHub>("/streamingHub");
+app.MapHealthChecks("/health");
 
 app.Run();
